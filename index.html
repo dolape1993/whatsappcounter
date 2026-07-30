@@ -57,7 +57,7 @@
             text-align: center;
         }
         .result-box.secondary {
-            background: #eff6ff; /* Light blue to distinguish the pairs */
+            background: #eff6ff; 
             border: 1px solid #bfdbfe;
         }
         .result-box p {
@@ -139,7 +139,7 @@
             padding-left: 1.5rem;
             color: #4b5563;
         }
-        .pairs-append {
+        .summary-append {
             text-align: center;
             padding: 1rem;
             background: #eff6ff;
@@ -147,6 +147,9 @@
             font-weight: 600;
             border-radius: 6px;
             margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
         .warning-limit {
             background: #fef3c7;
@@ -195,7 +198,7 @@
 
         <h3>Actual Group Breakdowns</h3>
         <div class="warning-limit" id="limit-warning">
-            <strong>Rendering Limit Reached:</strong> Showing the first 1,000 groups to prevent your browser from freezing.
+            <strong>Rendering Limit Reached:</strong> Showing the first 100 groups to prevent your browser from freezing.
         </div>
         <div class="group-list-container" id="group-lists">
             <!-- Group combinations rendered here -->
@@ -204,7 +207,6 @@
 
     <script>
         const namesPool = [
-            // 75 Female Names
             "Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen", 
             "Nancy", "Lisa", "Betty", "Margaret", "Sandra", "Ashley", "Kimberly", "Emily", "Donna", "Michelle", 
             "Dorothy", "Carol", "Amanda", "Melissa", "Deborah", "Stephanie", "Rebecca", "Sharon", "Laura", "Cynthia", 
@@ -213,7 +215,6 @@
             "Heather", "Diane", "Virginia", "Julie", "Joyce", "Victoria", "Olivia", "Kelly", "Christina", "Lauren", 
             "Joan", "Evelyn", "Judith", "Megan", "Cheryl", "Andrea", "Hannah", "Martha", "Jacqueline", "Frances", 
             "Gloria", "Ann", "Teresa", "Kathryn", "Sara",
-            // 75 Male Names
             "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles", 
             "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua", 
             "Kenneth", "Kevin", "Brian", "George", "Edward", "Ronald", "Timothy", "Jason", "Jeffrey", "Ryan", 
@@ -224,7 +225,6 @@
             "Austin", "Carl", "Arthur", "Lawrence", "Dylan"
         ];
 
-        // Fisher-Yates Shuffle to get X random unique names
         function getRandomNames(count) {
             const shuffled = [...namesPool];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -234,7 +234,6 @@
             return shuffled.slice(0, count);
         }
 
-        // Combinatorics Math
         function getCombinationCount(n, k) {
             if (k < 0 || k > n) return 0;
             if (k === 0 || k === n) return 1;
@@ -246,7 +245,6 @@
             return Math.round(result); 
         }
 
-        // Array Subset Generator
         function generateSubsets(arr, size) {
             let results = [];
             if (size === 1) return arr.map(el => [el]);
@@ -284,12 +282,10 @@
                 return;
             }
 
-            // 1. Calculate Core Data
             let totalGroups = 0;
             let maxCount = 0;
             const sizeData = [];
             
-            // 3+ People Groups
             for (let k = 3; k <= x; k++) {
                 const count = getCombinationCount(x, k);
                 totalGroups += count;
@@ -297,15 +293,12 @@
                 sizeData.push({ size: k, count: count });
             }
 
-            // 2-People Pairs
             const pairsCount = getCombinationCount(x, 2);
             
-            // Update Metric Cards
             totalEl.innerText = totalGroups.toLocaleString();
             pairsEl.innerText = `+ ${pairsCount.toLocaleString()} Pairs`;
             grandTotalEl.innerText = `Grand total: ${(totalGroups + pairsCount).toLocaleString()} combinations`;
             
-            // 2. Render Chart
             chart.innerHTML = '';
             sizeData.forEach(item => {
                 const widthPercent = Math.max((item.count / maxCount) * 100, 0.5); 
@@ -320,16 +313,14 @@
                 `;
             });
 
-            // 3. Generate and Render Actual Groups
             const selectedNames = getRandomNames(x);
             let renderedHtml = '';
             let groupCounter = 1;
             let renderedCount = 0;
-            const RENDER_LIMIT = 1000;
+            const RENDER_LIMIT = 100; // Lowered to 100 per request
 
             warningEl.style.display = totalGroups > RENDER_LIMIT ? 'block' : 'none';
 
-            // Generate subsets from largest to smallest (X down to 3)
             for (let size = x; size >= 3; size--) {
                 if (renderedCount >= RENDER_LIMIT) break;
                 
@@ -363,10 +354,18 @@
                 }
             }
 
-            // Finally, append the pairs summary at the very end of the list
+            // Calculate unrendered groups
+            const unrenderedGroupsCount = totalGroups - renderedCount;
+            let unrenderedHtml = '';
+            
+            if (unrenderedGroupsCount > 0) {
+                unrenderedHtml = `<div>+ ${unrenderedGroupsCount.toLocaleString()} more groups!</div>`;
+            }
+
             renderedHtml += `
-                <div class="pairs-append">
-                    + ${pairsCount.toLocaleString()} number of 1-1 groups
+                <div class="summary-append">
+                    ${unrenderedHtml}
+                    <div>+ ${pairsCount.toLocaleString()} number of 1-1 groups</div>
                 </div>
             `;
 
@@ -374,7 +373,6 @@
         }
 
         document.getElementById('people').addEventListener('input', updateUI);
-        // Initial render
         updateUI();
     </script>
 </body>

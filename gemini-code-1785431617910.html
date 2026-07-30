@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Group Combinations</title>
+    <style>
+        body { 
+            font-family: system-ui, -apple-system, sans-serif; 
+            max-width: 800px; 
+            margin: 2rem auto; 
+            padding: 0 1rem; 
+            color: #1f2937; 
+            line-height: 1.5;
+        }
+        .header-quote {
+            font-size: 1.1rem;
+            font-style: italic;
+            color: #4b5563;
+            border-left: 4px solid #3b82f6;
+            padding-left: 1rem;
+            margin-bottom: 2rem;
+            background: #f8fafc;
+            padding: 1rem 1rem 1rem 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .card { 
+            background: #ffffff; 
+            padding: 2rem; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e5e7eb;
+        }
+        .input-group { 
+            margin-bottom: 1.5rem; 
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        input[type="number"] { 
+            width: 80px; 
+            padding: 0.5rem; 
+            font-size: 1.1rem; 
+            border: 1px solid #d1d5db; 
+            border-radius: 4px; 
+        }
+        .grid-results {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .result-box { 
+            padding: 1.5rem; 
+            background: #f3f4f6; 
+            border-radius: 6px; 
+            text-align: center;
+        }
+        .result-box.secondary {
+            background: #eff6ff; /* Light blue to distinguish the pairs */
+            border: 1px solid #bfdbfe;
+        }
+        .result-box p {
+            margin: 0 0 0.5rem 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+        .big-number { 
+            font-size: 2.5rem; 
+            font-weight: bold; 
+            color: #2563eb; 
+        }
+        .bar-row { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 0.75rem; 
+            gap: 1rem;
+        }
+        .bar-label { 
+            width: 80px; 
+            font-size: 0.9rem; 
+            font-weight: 500;
+            text-align: right;
+            color: #4b5563;
+        }
+        .bar-container { 
+            flex-grow: 1; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bar { 
+            height: 24px; 
+            background: #3b82f6; 
+            border-radius: 3px;
+            transition: width 0.3s ease; 
+        }
+        .bar-value { 
+            font-size: 0.85rem; 
+            color: #374151; 
+            font-weight: 600; 
+        }
+        h2, h3 {
+            margin-top: 0;
+        }
+        h3 {
+            font-size: 1.1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            margin-top: 2rem;
+        }
+        .group-list-container {
+            margin-top: 2rem;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        .group-item {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px dashed #d1d5db;
+        }
+        .group-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .group-title {
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        .group-members {
+            margin: 0;
+            padding-left: 1.5rem;
+            color: #4b5563;
+        }
+        .pairs-append {
+            text-align: center;
+            padding: 1rem;
+            background: #eff6ff;
+            color: #1e3a8a;
+            font-weight: 600;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+        .warning-limit {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            color: #92400e;
+            font-size: 0.9rem;
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .grid-results { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-quote">
+        "If you ever experience FOMO because you think you were excluded from a plan, take comfort in math: for every friend group, there is a mathematical certainty of smaller spin-off chats that exclude exactly one person. Don't take it personally—it's just combinatorics."
+    </div>
+
+    <div class="card">
+        <h2>Group Chat Combinatorics</h2>
+        
+        <div class="input-group">
+            <label for="people"><strong>Total people in the friend group:</strong></label>
+            <input type="number" id="people" value="6" min="3" max="50">
+        </div>
+        
+        <div class="grid-results">
+            <div class="result-box">
+                <p><strong>Actual Group Chats</strong><br/>(3 or more people)</p>
+                <div class="big-number" id="total-groups">42</div>
+            </div>
+            <div class="result-box secondary">
+                <p><strong>What about Pairs?</strong><br/>Groups of 2 technically exist as 1-on-1 direct messages.</p>
+                <div class="big-number" id="total-pairs" style="font-size: 1.75rem; margin-top: 0.5rem;">+ 15 Pairs</div>
+                <p style="font-size: 0.8rem; margin-top: 0.5rem;" id="grand-total">Grand total: 57 combinations</p>
+            </div>
+        </div>
+
+        <div id="chart-container">
+            <h3>Distribution by Group Size</h3>
+            <div id="chart"></div>
+        </div>
+
+        <h3>Actual Group Breakdowns</h3>
+        <div class="warning-limit" id="limit-warning">
+            <strong>Rendering Limit Reached:</strong> Showing the first 1,000 groups to prevent your browser from freezing.
+        </div>
+        <div class="group-list-container" id="group-lists">
+            <!-- Group combinations rendered here -->
+        </div>
+    </div>
+
+    <script>
+        const namesPool = [
+            // 75 Female Names
+            "Mary", "Patricia", "Jennifer", "Linda", "Elizabeth", "Barbara", "Susan", "Jessica", "Sarah", "Karen", 
+            "Nancy", "Lisa", "Betty", "Margaret", "Sandra", "Ashley", "Kimberly", "Emily", "Donna", "Michelle", 
+            "Dorothy", "Carol", "Amanda", "Melissa", "Deborah", "Stephanie", "Rebecca", "Sharon", "Laura", "Cynthia", 
+            "Kathleen", "Amy", "Shirley", "Angela", "Helen", "Anna", "Brenda", "Pamela", "Nicole", "Emma", 
+            "Samantha", "Katherine", "Christine", "Debra", "Rachel", "Catherine", "Carolyn", "Janet", "Ruth", "Maria", 
+            "Heather", "Diane", "Virginia", "Julie", "Joyce", "Victoria", "Olivia", "Kelly", "Christina", "Lauren", 
+            "Joan", "Evelyn", "Judith", "Megan", "Cheryl", "Andrea", "Hannah", "Martha", "Jacqueline", "Frances", 
+            "Gloria", "Ann", "Teresa", "Kathryn", "Sara",
+            // 75 Male Names
+            "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas", "Charles", 
+            "Christopher", "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew", "Joshua", 
+            "Kenneth", "Kevin", "Brian", "George", "Edward", "Ronald", "Timothy", "Jason", "Jeffrey", "Ryan", 
+            "Jacob", "Gary", "Nicholas", "Eric", "Jonathan", "Stephen", "Larry", "Justin", "Scott", "Brandon", 
+            "Benjamin", "Samuel", "Gregory", "Frank", "Alexander", "Raymond", "Patrick", "Jack", "Dennis", "Jerry", 
+            "Tyler", "Aaron", "Jose", "Adam", "Henry", "Nathan", "Douglas", "Zachary", "Peter", "Kyle", 
+            "Walter", "Ethan", "Jeremy", "Christian", "Keith", "Roger", "Terry", "Gerald", "Harold", "Sean", 
+            "Austin", "Carl", "Arthur", "Lawrence", "Dylan"
+        ];
+
+        // Fisher-Yates Shuffle to get X random unique names
+        function getRandomNames(count) {
+            const shuffled = [...namesPool];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled.slice(0, count);
+        }
+
+        // Combinatorics Math
+        function getCombinationCount(n, k) {
+            if (k < 0 || k > n) return 0;
+            if (k === 0 || k === n) return 1;
+            if (k > n / 2) k = n - k;
+            let result = 1;
+            for (let i = 1; i <= k; i++) {
+                result = result * (n - i + 1) / i;
+            }
+            return Math.round(result); 
+        }
+
+        // Array Subset Generator
+        function generateSubsets(arr, size) {
+            let results = [];
+            if (size === 1) return arr.map(el => [el]);
+            
+            for (let i = 0; i <= arr.length - size; i++) {
+                let first = arr[i];
+                let rest = generateSubsets(arr.slice(i + 1), size - 1);
+                for (let j = 0; j < rest.length; j++) {
+                    results.push([first, ...rest[j]]);
+                }
+            }
+            return results;
+        }
+
+        function updateUI() {
+            const x = parseInt(document.getElementById('people').value) || 0;
+            const chart = document.getElementById('chart');
+            const totalEl = document.getElementById('total-groups');
+            const pairsEl = document.getElementById('total-pairs');
+            const grandTotalEl = document.getElementById('grand-total');
+            const groupListsEl = document.getElementById('group-lists');
+            const warningEl = document.getElementById('limit-warning');
+            
+            if (x < 3) {
+                chart.innerHTML = '<p style="color: #ef4444;">You need at least 3 people for a group chat.</p>';
+                totalEl.innerText = '0';
+                pairsEl.innerText = '+ 0 Pairs';
+                grandTotalEl.innerText = 'Grand total: 0 combinations';
+                groupListsEl.innerHTML = '';
+                warningEl.style.display = 'none';
+                return;
+            }
+            if (x > 50) {
+                chart.innerHTML = '<p style="color: #ef4444;">Capped at 50 to prevent your browser from freezing.</p>';
+                return;
+            }
+
+            // 1. Calculate Core Data
+            let totalGroups = 0;
+            let maxCount = 0;
+            const sizeData = [];
+            
+            // 3+ People Groups
+            for (let k = 3; k <= x; k++) {
+                const count = getCombinationCount(x, k);
+                totalGroups += count;
+                if (count > maxCount) maxCount = count;
+                sizeData.push({ size: k, count: count });
+            }
+
+            // 2-People Pairs
+            const pairsCount = getCombinationCount(x, 2);
+            
+            // Update Metric Cards
+            totalEl.innerText = totalGroups.toLocaleString();
+            pairsEl.innerText = `+ ${pairsCount.toLocaleString()} Pairs`;
+            grandTotalEl.innerText = `Grand total: ${(totalGroups + pairsCount).toLocaleString()} combinations`;
+            
+            // 2. Render Chart
+            chart.innerHTML = '';
+            sizeData.forEach(item => {
+                const widthPercent = Math.max((item.count / maxCount) * 100, 0.5); 
+                chart.innerHTML += `
+                    <div class="bar-row">
+                        <div class="bar-label">${item.size} peeps</div>
+                        <div class="bar-container">
+                            <div class="bar" style="width: ${widthPercent}%"></div>
+                            <div class="bar-value">${item.count.toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 3. Generate and Render Actual Groups
+            const selectedNames = getRandomNames(x);
+            let renderedHtml = '';
+            let groupCounter = 1;
+            let renderedCount = 0;
+            const RENDER_LIMIT = 1000;
+
+            warningEl.style.display = totalGroups > RENDER_LIMIT ? 'block' : 'none';
+
+            // Generate subsets from largest to smallest (X down to 3)
+            for (let size = x; size >= 3; size--) {
+                if (renderedCount >= RENDER_LIMIT) break;
+                
+                const subsets = generateSubsets(selectedNames, size);
+                
+                for (const subset of subsets) {
+                    if (renderedCount >= RENDER_LIMIT) break;
+
+                    let titleStr = `Group ${groupCounter}`;
+                    
+                    if (size === x - 1) {
+                        const excludedName = selectedNames.find(name => !subset.includes(name));
+                        titleStr += ` (Excludes ${excludedName})`;
+                    } else if (size === x) {
+                        titleStr += ` (Everyone)`;
+                    }
+
+                    let membersHtml = subset.map(name => `<li>${name}</li>`).join('');
+                    
+                    renderedHtml += `
+                        <div class="group-item">
+                            <div class="group-title">${titleStr}</div>
+                            <ul class="group-members">
+                                ${membersHtml}
+                            </ul>
+                        </div>
+                    `;
+                    
+                    groupCounter++;
+                    renderedCount++;
+                }
+            }
+
+            // Finally, append the pairs summary at the very end of the list
+            renderedHtml += `
+                <div class="pairs-append">
+                    + ${pairsCount.toLocaleString()} number of 1-1 groups
+                </div>
+            `;
+
+            groupListsEl.innerHTML = renderedHtml;
+        }
+
+        document.getElementById('people').addEventListener('input', updateUI);
+        // Initial render
+        updateUI();
+    </script>
+</body>
+</html>
